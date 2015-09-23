@@ -1,7 +1,7 @@
 # allminds
 All minds code base
 
-# For Codeship:
+#For Codeship:
 
 # Set up Script:
 
