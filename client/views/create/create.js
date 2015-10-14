@@ -1,17 +1,30 @@
 /* global mindMapService */
 /* global d3 */
 mindMapService = new MindMapService();
+var drawTree;
 Template.create.rendered = function (d) {
-      var rootNodeData = this.data,
+      var mapId = this.data._id,
+      rootNodeData = this.data,
             vis = d3.select("#mindmap").append("svg:svg")
                   .attr("width", 1000).attr("height", 500)
-                  .append("svg:g").attr("transform", "translate(150, 0)"),
-            tree = d3.layout.tree()
+                  .append("svg:g").attr("transform", "translate(150, 0)")
+            ,
+                   tree = d3.layout.tree()
                   .size([800, 500]),
             diagonal = d3.svg.diagonal()
-                  .projection(function (d) { return [d.y, d.x]; }),
+                  .projection(function (d) { return [d.y, d.x]; });
+            
+      
+       drawTree= function(update){
+            if(update){
+                  rootNodeData = Mindmaps.findOne(mapId);
+            }
+            var nodes=tree.nodes(rootNodeData).reverse();
+
+            console.log("Blah blah")
             nodes = tree.nodes(rootNodeData),// Preparing the data for the tree layout, convert data into an array of nodes
             links = tree.links(nodes);// Create an array with all the links
+      
       vis.selectAll("pathlink")
             .data(links)
             .enter().append("svg:path")
@@ -38,7 +51,14 @@ Template.create.rendered = function (d) {
             .text(function (d) { return d.name; })
             .call(make_editable, "name", rootNodeData);
 
-      
+      };
+
+      drawTree();
+
+      Mindmaps.find().observe({
+
+            changed: _.partial(drawTree, true) 
+      });
 
 
 }
@@ -68,7 +88,9 @@ function showEditor(nodeData, field, rootNodeData) {
                   currentElement.attr("text-anchor", "middle")
 
                   parentElement.select("foreignObject").remove();
+                 
                   mindMapService.updateNode(rootNodeData);
+                   drawTree(true);
             };
 
       inp.attr("value", function () {
